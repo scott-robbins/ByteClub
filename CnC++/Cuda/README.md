@@ -86,6 +86,30 @@ Host pointers point to CPU memory
 * May be passed to/from device code
 * May not be de-referenced in device code
 
+## Moving to Parallel
+GPU computing is about massive parallelism
+Run code in parallel on the device: 
+*    add<<< 1, 1 >>>();
+*    add<<< N, 1 >>>();
+
+Now instead of executing the add() kernel once, we will execute it N times *in parallel*. 
+
+Terminology: each parallel invocation of add() is referred to as a block
+* The set of blocks is referred to as a grid
+* Each invocation can refer to its block index using blockIdx.x
+```
+__global__ void add(int *a, int *b, int *c) {
+        c[blockIdx.x] = a[blockIdx.x] + b[blockIdx.x];
+}
+```
+By using blockIdx.xto index into the array, each block handles a different element of the array
+```
+__global__ voidadd(int*a, int*b, int*c) {
+        c[blockIdx.x] = a[blockIdx.x] + b[blockIdx.x];
+}
+```
+
+Now redesign main function running the add() kernel in parallel. 
 
 [ CUDA Reference PDF](https://www.nvidia.com/docs/io/116711/sc11-cuda-c-basics.pdf)
 

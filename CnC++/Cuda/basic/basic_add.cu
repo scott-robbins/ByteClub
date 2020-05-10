@@ -24,7 +24,6 @@ int main(void){
     // Launch add() kernel on GPU
     add<<<1,1>>>(d_a, d_b, d_c);// Copy result back to host
     cudaMemcpy(&c, d_c, size, cudaMemcpyDeviceToHost);
-
     cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
 
     // show the result

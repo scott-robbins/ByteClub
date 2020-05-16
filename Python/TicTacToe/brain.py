@@ -41,7 +41,7 @@ class MCTicTacToe:
         n_moves = {3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}  # game length
         distribution = {'X': 0, 'O': 0, '': 0}
         tic = time.time()
-        n_trials = 1500
+        n_trials = 5000
 
         games = {'Wins': [], 'Loss': []}
         game_index = 0

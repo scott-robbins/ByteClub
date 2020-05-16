@@ -7,3 +7,5 @@ So far I'm using random self play. Looking at the games that are Wins I count th
 used, creating a kind of histogram of options that led to victory. This alone has been
 interesting because with only a couple thousand games it quickly finds the best strategy
 as being to move to the center. 
+
+![raw_counts](https://raw.githubusercontent.com/scott-robbins/ByteClub/master/Python/TicTacToe/self-play.png)

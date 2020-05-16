@@ -14,18 +14,62 @@ class MCTicTacToe:
         # There cannot be more than 5 levels of play in Tic tac toe because there are
         # two players, 9 squares and each player takes turns moving.
         """ Keys are tile # and value is probability that this move led to a winning game """
-        w0 = 1/9.0
-        self.weights_move_1 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
-        self.weights_move_2 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
-        self.weights_move_3 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
-        self.weights_move_4 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
-        self.weights_move_5 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
-        self.weights_move_6 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
-        self.weights_move_7 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0,8: w0,9: w0}
+        w0 = 0.0    # I think these should be initialized at zero actually
+        self.weights_move_1 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_2 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_3 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_4 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_5 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_6 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_7 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weights_move_8 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        # Now can I use this labeled game history to populate a Monte Carlo Search Tree?
+        games, win_loss, game_sizes = self.create_initial_game_tree()
+
+    # TODO: break into more sub functions?
+    def create_initial_game_tree(self):
+        """
+        --------------------------------------------------------------------------------
+        CREATE_GAME_TREE                                            TODO: Fill this in
+        --------------------------------------------------------------------------------
+        http://www.mathrec.org/old/2002jan/solutions.html
+        *  47,952  games end with three in a row after seven moves
+        *  54,720  games which end with three in a row before the eighth move
+        * 255,168  games where one player completes three in a row or the board is full
+        """
+        print '\033[1m====\t\033[31m\033[1mStarting Self-Play\033[0m\033[1m\t====\033[0m'
+        n_moves = {3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}  # game length
+        distribution = {'X': 0, 'O': 0, '': 0}
+        tic = time.time()
+        n_trials = 1500
+
+        games = {'Wins': [], 'Loss': []}
+        game_index = 0
+        for i in tqdm.tqdm(range(n_trials)):
+            winner, state, nm = self.self_play(False)
+            if winner=='X':
+                games['Wins'].append(state)
+            else:
+                games['Loss'].append(state)
+            n_moves[nm + 1] += 1
+            distribution[winner] += 1
+            game_index += 1
+
+        self.show_self_play_stats(distribution, n_moves, n_trials, tic)
+
+        # Ok Now Let's build the Monte Carlo Tree
+        for round in games['Wins']:
+            # Update self.weights based on what happens in each winning game
+            self.learn_from_game(round)
+        # Re-adjust the weights based on the losses
+        self.reveal_internal_state()
+        # AI Win Rate
+        win_rate = distribution['X']/float(distribution['O'] + distribution['X']+ distribution[''])
+        return games, distribution, n_moves
 
     def self_play(self, show):
         """
-
+        play a random game of tic tac toe to populate game tree
         :param show:
         :return:
         """
@@ -72,45 +116,95 @@ class MCTicTacToe:
 
         return winner, history, (move_ct_a+move_ct_b)/2
 
+    def show_self_play_stats(self, distr, nm, nt, t):
+        winX = 100.0 * (distr['X'] / float(nt))
+        winO = 100.0 * (distr['O'] / float(nt))
+        draw = 100.0 * (distr[''] / float(nt))
+
+        print '[*] Finished Running %d Trials [%ss Elapsed]' % (nt, str(time.time() - t))
+        print '\033[1m\033[32mX\033[0m won %d/%d Games [%s percent]' % (distr['X'], nt, str(winX))
+        print '\033[1m\033[34mO\033[0m won %d/%d Games [%s percent]' % (distr['O'], nt, str(winO))
+        print 'Tied %d/%d Games [%s percent]' % (distr[''], nt, str(draw))
+        print 'Game Length Distribution: '
+        print nm
+        print '\033[1m' + '=' * 60 + '\033[0m'
+
+    def learn_from_game(self, moves):
+        assign_weights = {1:self.weights_move_2,
+                          2:self.weights_move_3,
+                          3:self.weights_move_4,
+                          4:self.weights_move_5,
+                          5:self.weights_move_6,
+                          6:self.weights_move_7,
+                          7:self.weights_move_8,
+                          }
+        n_steps = len(moves)
+        # Determine where the first move made
+        [dx1, dy1] = self.find_cell_moved(np.zeros((3, 3)), moves[0])
+        mv1 = np.array(engine.TicTacToe.where)[dx1, dy1]
+        self.weights_move_1[mv1] += 1
+        # Determine the other moves made
+        for step in range(1,n_steps):
+            try:
+                [dnx, dny] = self.find_cell_moved(moves[step - 1], moves[step])
+                mvN = np.array(engine.TicTacToe.where)[dnx, dny]
+                assign_weights[step][mvN] += 1
+            except ValueError:
+                # Game ended with a tie, so there were no changes?
+                break
+
+    def find_cell_moved(self, last_state, new_state):
+        diff_row_1 = new_state[0,:] - last_state[0,:]
+        diff_row_2 = new_state[1,:] - last_state[1,:]
+        diff_row_3 = new_state[2,:] - last_state[2,:]
+        # Any non zero is new, equal to 1 is an X
+        f1 = np.where(diff_row_1 == 1)[0]
+        f2 = np.where(diff_row_2 == 1)[0]
+        f3 = np.where(diff_row_3 == 1)[0]
+        if len(f1):
+            moved = [f1[0], 0]
+        elif len(f2):
+            moved = [f2[0], 1]
+        elif len(f3):
+            moved = [f3[0], 2]
+        else:
+            # Prob an error? Nothing changed
+            moved = []
+        return moved
+
+    def find_opponent_moved(self, last_state, new_state):
+        diff_row_1 = new_state[0,:] - last_state[0,:]
+        diff_row_2 = new_state[1,:] - last_state[1,:]
+        diff_row_3 = new_state[2,:] - last_state[2,:]
+        # Any non zero is new, equal to -1 is a O
+        f1 = np.where(diff_row_1 == -1)[0]
+        f2 = np.where(diff_row_2 == -1)[0]
+        f3 = np.where(diff_row_3 == -1)[0]
+        if len(f1):
+            moved = [f1[0], 0]
+        elif len(f2):
+            moved = [f2[0], 1]
+        elif len(f3):
+            moved = [f3[0], 2]
+        else:
+            # Prob an error? Nothing changed
+            moved = []
+        return moved
+
+    def reveal_internal_state(self):
+        print '='*10+' WEIGHTS '+'='*10
+        print self.weights_move_1
+        print self.weights_move_2
+        print self.weights_move_3
+        print self.weights_move_4
+        print self.weights_move_5
+        print self.weights_move_6
+        print self.weights_move_7
+        print self.weights_move_8
+
+
 
 if __name__ == '__main__':
-    distribution = {'X': 0, 'O': 0, '':0}
-    n_moves = {3:0,4:0,5:0,6:0,7:0,8:0} # Indexed from zero
-    tic = time.time()
-    n_trials = 1
-    # I think there 15120 possible games of Tic Tac Toe? (9*8*7*6*5=15,120)
-    # Not quite: http://www.mathrec.org/old/2002jan/solutions.html
-    """
-    *  47,952  games end with three in a row after seven moves
-    *  54,720  games which end with three in a row before the eighth move
-    * 255,168  games where one player completes three in a row or the board is full
-    """
-    print '\033[1m====\t\033[31m\033[1mStarting Training\033[0m\033[1m\t====\033[0m'
-
-    games = {'Wins': [], 'Loss': []}
-    game_index = 0
-    for i in tqdm.tqdm(range(n_trials)):
-        winner, state, nm = MCTicTacToe().self_play(False)
-        if winner:
-            games['Wins'].append(state)
-        else:
-            games['Loss'].append(state)
-        n_moves[nm+1] += 1
-        distribution[winner] += 1
-        game_index += 1
-
-    winX = 100.0*(distribution['X']/float(n_trials))
-    winO = 100.0*(distribution['O']/float(n_trials))
-    draw = 100.0*(distribution['']/float(n_trials))
-
-    print '[*] Finished Running %d Trials [%ss Elapsed]' % (n_trials, str(time.time()-tic))
-    print '\033[1m\033[32mX\033[0m won %d/%d Games [%s percent]' % (distribution['X'], n_trials, str(winX))
-    print '\033[1m\033[34mO\033[0m won %d/%d Games [%s percent]' % (distribution['O'], n_trials, str(winO))
-    print 'Tied %d/%d Games [%s percent]' % (distribution[''], n_trials, str(draw))
-    print 'Game Length Distribution: '
-    print n_moves
-    print '\033[1m'+'='*60+'\033[0m'
-
-    # Now can I use this labeled game history to populate a Monte Carlo Search Tree?
+    game_tree = MCTicTacToe()
 
 

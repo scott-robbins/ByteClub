@@ -1,4 +1,6 @@
 import numpy as np
+import brain
+import sys
 import os
 
 
@@ -22,6 +24,7 @@ class TicTacToe:
         self.lookup = {'O': -1, 'X': 1, ' ': 0}
         self.running = True
         self.set_board()
+
 
     def set_board(self):
         """
@@ -62,7 +65,7 @@ class TicTacToe:
             [x, y] = self.tiles[piece]
             if self.board[x, y] != 0:
                 print '[!!] Cannot move to [%d,%d] because its taken' % (x, y)
-                print self.show()
+                print self.show(False)
                 return False
             elif move in self.choices.keys():
                 self.board[x,y] = move
@@ -110,6 +113,24 @@ class TicTacToe:
                 return False, []
         return True, random_guess
 
+    def consider_move(self, board,ai, turn_no):
+        # pull the probabilities for each square in monte carlo search
+        # tree for which move has the most wins associated with a choice
+        cell = {1: [0, 0], 2: [1, 0], 3: [2, 0],
+                4: [0, 1], 5: [1, 1], 6: [2, 1],
+                7: [0, 2], 8: [1, 2], 9: [2, 2]}
+        odds = ai.weight_table[turn_no]
+        moved = False
+        best_cell = np.where(np.array(odds.values())==np.array(odds.values()).max())[0][0]+1
+        [gx,gy] = cell[best_cell]
+        if board.board[gx,gy]==0:
+            guessed = best_cell
+        else:
+            # TODO: Fix this to find next best choices, not random ones!!
+            status, guessed = self.find_random_move()
+
+        return guessed
+
     def check_for_winner(self):
         r1 = self.board[:, 0]
         r2 = self.board[:, 1]
@@ -146,41 +167,42 @@ class TicTacToe:
 
 
 if __name__ == '__main__':
-    # Create the game board
-    board = TicTacToe('O')
-    first_move = False
+    if len(sys.argv)<1 or 'test' in sys.argv:
+        # Create the game board
+        board = TicTacToe('O')
+        first_move = False
 
-    if first_move:
-        board.find_random_move()  # TODO: Use a game tree + search algorithm
-        print board.show(True)
-    else:
-        print board.show(True)
-        option = int(raw_input('Enter a move: '))
-        board.set_cell(option, board.lookup['X'])  # User is X by default for now
-
-    # Start running the game loop
-    while board.running:
-        os.system('clear')
-        if board.choices[int(board.check_for_winner())] == 'X':
-            print '[*] User Wins!'
-            board.running = False
-            break
-        ''' Let The Bot Move '''
-        bot_moved, choice = board.find_random_move()  # TODO: Use a game tree + search algorithm
-        winner = board.choices[int(board.check_for_winner())]
-        if not bot_moved:
-            print '!! [GAME OVER] !!'
-            exit()
-
-        print board.show(True)
-
-        if winner == 'O':
-            print '[*] Bot Wins!'
-            board.running = False
-
-        '''  Let the User MOve '''
-        user_moved = False
-        while not user_moved and board.running:
+        if first_move:
+            board.find_random_move()  # TODO: Use a game tree + search algorithm
+            print board.show(True)
+        else:
+            print board.show(True)
             option = int(raw_input('Enter a move: '))
-            user_moved = board.set_cell(option, board.lookup['X'])
-    print board.show(True)
+            board.set_cell(option, board.lookup['X'])  # User is X by default for now
+
+        # Start running the game loop
+        while board.running:
+            os.system('clear')
+            if board.choices[int(board.check_for_winner())] == 'X':
+                print '[*] User Wins!'
+                board.running = False
+                break
+            ''' Let The Bot Move '''
+            bot_moved, choice = board.find_random_move()  # TODO: Use a game tree + search algorithm
+            winner = board.choices[int(board.check_for_winner())]
+            if not bot_moved:
+                print '!! [GAME OVER] !!'
+                exit()
+
+            print board.show(True)
+
+            if winner == 'O':
+                print '[*] Bot Wins!'
+                board.running = False
+
+            '''  Let the User MOve '''
+            user_moved = False
+            while not user_moved and board.running:
+                option = int(raw_input('Enter a move: '))
+                user_moved = board.set_cell(option, board.lookup['X'])
+        print board.show(True)

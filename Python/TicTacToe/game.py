@@ -1,5 +1,7 @@
 import numpy as np
 import engine
+import brain
+import sys
 import os
 
 
@@ -96,12 +98,49 @@ def user_first_game_loop(game, ai_team, my_team):
     return winner, game
 
 
+def play_against_ai(game, ai_team, my_team):
+    winner = {'ai': False, 'me': False}
+    turn = 1
+    ideas = brain.MCTicTacToe(False)
+
+    while game.running:
+        # Let Bot Move
+        option = game.consider_move(game, ideas, turn)
+        game.set_cell(option, game.lookup[ai_team])
+
+        # check if bot won
+        if game.choices[int(game.check_for_winner())] == ai_team:
+            print '[*] Bot Wins!'
+            winner['ai'] = True
+            game.running = False
+            break
+
+        # Let user move
+        option = get_move_from_user(game)
+        game.set_cell(option, game.lookup[my_team])
+
+        # Check if user won
+        if game.choices[int(game.check_for_winner())] == my_team:
+            print '[*] User Wins!'
+            winner['me'] = True
+            game.running = False
+            break
+
+    print '! ! ! GAME OVER ! ! !'
+    return winner, game
+
+
 def run_game():
     bot_team, ppl_team = choose_side()
-
     # Create Game Board
     board = engine.TicTacToe(bot_team)
-    result, board = user_first_game_loop(board, bot_team, ppl_team)
+
+    if 'play' in sys.argv:
+        play_against_ai(board, bot_team, ppl_team)
+    else:
+        result, board = user_first_game_loop(board, bot_team, ppl_team)
+
+    # Show how the game went
     for state in board.game:
         print np.array(state).astype(np.str)
 

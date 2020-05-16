@@ -9,7 +9,9 @@ import time
 
 class MCTicTacToe:
 
-    def __init__(self):
+    N_Training_Rounds = 5000
+
+    def __init__(self, verbosity):
         # Populate a game tree for deriving the probability of every possible branch?
         # There cannot be more than 5 levels of play in Tic tac toe because there are
         # two players, 9 squares and each player takes turns moving.
@@ -23,6 +25,14 @@ class MCTicTacToe:
         self.weights_move_6 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
         self.weights_move_7 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
         self.weights_move_8 = {1: w0,2: w0,3: w0,4: w0,5: w0,6: w0,7: w0, 8: w0, 9: w0}
+        self.weight_table = {1: self.weights_move_1,
+                             2: self.weights_move_2,
+                             3: self.weights_move_3,
+                             4: self.weights_move_4,
+                             5: self.weights_move_5,
+                             6: self.weights_move_6,
+                             7: self.weights_move_7,
+                             8: self.weights_move_8}
         # Now can I use this labeled game history to populate a Monte Carlo Search Tree?
         games, win_loss, game_sizes = self.create_initial_game_tree()
 
@@ -41,11 +51,10 @@ class MCTicTacToe:
         n_moves = {3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}  # game length
         distribution = {'X': 0, 'O': 0, '': 0}
         tic = time.time()
-        n_trials = 5000
 
         games = {'Wins': [], 'Loss': []}
         game_index = 0
-        for i in tqdm.tqdm(range(n_trials)):
+        for i in tqdm.tqdm(range(self.N_Training_Rounds)):
             winner, state, nm = self.self_play(False)
             if winner=='X':
                 games['Wins'].append(state)
@@ -55,7 +64,7 @@ class MCTicTacToe:
             distribution[winner] += 1
             game_index += 1
 
-        self.show_self_play_stats(distribution, n_moves, n_trials, tic)
+        self.show_self_play_stats(distribution, n_moves, self.N_Training_Rounds, tic)
 
         # Ok Now Let's build the Monte Carlo Tree
         for round in games['Wins']:
@@ -205,6 +214,6 @@ class MCTicTacToe:
 
 
 if __name__ == '__main__':
-    game_tree = MCTicTacToe()
+    game_tree = MCTicTacToe(True)
 
 

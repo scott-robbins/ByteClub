@@ -115,18 +115,32 @@ class TicTacToe:
     def consider_move(self, board,ai, turn_no):
         # pull the probabilities for each square in monte carlo search
         # tree for which move has the most wins associated with a choice
+
+        # best_cell = np.where(np.array(odds.values())==np.array(odds.values()).max())[0][0]+1
+        # [gx,gy] = cell[best_cell]
+        # if board.board[gx, gy] == 0:
+        #     guessed = best_cell
+
         cell = {1: [0, 0], 2: [1, 0], 3: [2, 0],
                 4: [0, 1], 5: [1, 1], 6: [2, 1],
                 7: [0, 2], 8: [1, 2], 9: [2, 2]}
         odds = ai.weight_table[turn_no]
         moved = False
-        best_cell = np.where(np.array(odds.values())==np.array(odds.values()).max())[0][0]+1
-        [gx,gy] = cell[best_cell]
-        if board.board[gx, gy] == 0:
-            guessed = best_cell
-        else:
-            # TODO: Fix this to find next best choices, not random ones!!
-            status, guessed = self.find_random_move()
+        choices = list(odds.values())
+
+        while not moved:
+            if not len(choices):
+                moved, guessed = self.find_random_move()
+            else:
+                best_cell = np.where(np.array(choices) == np.array(choices).max())[0][0] + 1
+                [gx, gy] = cell[best_cell]
+                if board.board[gx, gy] == 0:
+                    guessed = best_cell
+                    moved = True
+                else:
+                    choices.remove(choices[best_cell-1])
+
+
 
         return guessed
 

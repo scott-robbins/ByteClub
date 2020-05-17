@@ -9,7 +9,7 @@ import time
 
 class MCTicTacToe:
 
-    N_Training_Rounds = 5000
+    N_Training_Rounds = 15750
     verbose = False
 
     def __init__(self, verbosity):

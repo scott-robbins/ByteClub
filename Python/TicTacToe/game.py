@@ -107,7 +107,7 @@ def play_against_ai(game, ai_team, my_team):
         # Let Bot Move
         option = game.consider_move(game, ideas, turn)
         game.set_cell(option, game.lookup[ai_team])
-
+        turn += 1
         # check if bot won
         if game.choices[int(game.check_for_winner())] == ai_team:
             print '[*] Bot Wins!'
@@ -130,14 +130,54 @@ def play_against_ai(game, ai_team, my_team):
     return winner, game
 
 
+def play_ai_against_random(game, ai_team, random_team):
+    winner = {'ai': False, 'chance': False}
+    turn = 1
+    ideas = brain.MCTicTacToe(False)
+
+    while game.running:
+        # Let Random move First to make it harder for AI
+        game.find_random_move()
+        if game.choices[int(game.check_for_winner())] == random_team:
+            print '[*] Random Wins'
+            winner['chance'] = True
+            game.running = False
+            break
+        # Let Bot Move
+        option = game.consider_move(game, ideas, turn)
+        game.set_cell(option, game.lookup[ai_team])
+        turn += 1
+        # check if bot won
+        if game.choices[int(game.check_for_winner())] == ai_team:
+            print '[*] Bot Wins!'
+            winner['ai'] = True
+            game.running = True
+            break
+        moves_available, b = game.find_random_move()
+        if not moves_available:
+            print '[!![ It is a TIE. No winner.'
+            break
+    print '! ! ! GAME OVER ! ! !'
+    return winner, game
+
+
 def run_game():
-    bot_team, ppl_team = choose_side()
+
     # Create Game Board
-    board = engine.TicTacToe(bot_team)
+    board = engine.TicTacToe('X')
 
     if 'play' in sys.argv:
-        play_against_ai(board, bot_team, ppl_team)
-    else:
+        bot_team, ppl_team = choose_side()
+        winner, game = play_against_ai(board, bot_team, ppl_team)
+        print game.show(False)
+
+    if 'test_ai' in sys.argv:
+        bot_team = 'O'
+        winner, game = play_ai_against_random(board, bot_team, 'O')
+        print game.show(False)
+
+    if len(sys.argv) < 1:
+        bot_team, ppl_team = choose_side()
         result, board = user_first_game_loop(board, bot_team, ppl_team)
 
 

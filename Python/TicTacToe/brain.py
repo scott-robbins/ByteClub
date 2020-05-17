@@ -10,6 +10,7 @@ import time
 class MCTicTacToe:
 
     N_Training_Rounds = 5000
+    verbose = False
 
     def __init__(self, verbosity):
         # Populate a game tree for deriving the probability of every possible branch?
@@ -34,6 +35,7 @@ class MCTicTacToe:
                              7: self.weights_move_7,
                              8: self.weights_move_8}
         # Now can I use this labeled game history to populate a Monte Carlo Search Tree?
+        self.verbose = verbosity
         games, win_loss, game_sizes = self.create_initial_game_tree()
 
     # TODO: break into more sub functions?
@@ -47,7 +49,8 @@ class MCTicTacToe:
         *  54,720  games which end with three in a row before the eighth move
         * 255,168  games where one player completes three in a row or the board is full
         """
-        print '\033[1m====\t\033[31m\033[1mStarting Self-Play\033[0m\033[1m\t====\033[0m'
+        if self.verbose:
+            print '\033[1m====\t\033[31m\033[1mStarting Self-Play\033[0m\033[1m\t====\033[0m'
         n_moves = {3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0}  # game length
         distribution = {'X': 0, 'O': 0, '': 0}
         tic = time.time()
@@ -64,14 +67,17 @@ class MCTicTacToe:
             distribution[winner] += 1
             game_index += 1
 
-        self.show_self_play_stats(distribution, n_moves, self.N_Training_Rounds, tic)
+        if self.verbose:
+            self.show_self_play_stats(distribution, n_moves, self.N_Training_Rounds, tic)
 
         # Ok Now Let's build the Monte Carlo Tree
         for round in games['Wins']:
             # Update self.weights based on what happens in each winning game
             self.learn_from_game(round)
         # Re-adjust the weights based on the losses
-        self.reveal_internal_state()
+        if self.verbose:
+            self.reveal_internal_state()
+
         # AI Win Rate
         win_rate = distribution['X']/float(distribution['O'] + distribution['X']+ distribution[''])
         return games, distribution, n_moves

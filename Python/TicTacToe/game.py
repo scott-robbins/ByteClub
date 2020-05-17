@@ -140,9 +140,7 @@ def run_game():
     else:
         result, board = user_first_game_loop(board, bot_team, ppl_team)
 
-    # Show how the game went
-    for state in board.game:
-        print np.array(state).astype(np.str)
+
 
 
 if __name__ == '__main__':

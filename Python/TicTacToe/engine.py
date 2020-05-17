@@ -25,7 +25,6 @@ class TicTacToe:
         self.running = True
         self.set_board()
 
-
     def set_board(self):
         """
         Game board is 3x3 of 0s (empty spaces)
@@ -123,7 +122,7 @@ class TicTacToe:
         moved = False
         best_cell = np.where(np.array(odds.values())==np.array(odds.values()).max())[0][0]+1
         [gx,gy] = cell[best_cell]
-        if board.board[gx,gy]==0:
+        if board.board[gx, gy] == 0:
             guessed = best_cell
         else:
             # TODO: Fix this to find next best choices, not random ones!!

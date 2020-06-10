@@ -155,7 +155,7 @@ def play_ai_against_random(game, ai_team, random_team):
             break
         moves_available, b = game.find_random_move()
         if not moves_available:
-            print '[!![ It is a TIE. No winner.'
+            print '[!!] It is a TIE. No winner.'
             break
     print '! ! ! GAME OVER ! ! !'
     return winner, game
@@ -174,7 +174,7 @@ def run_game():
     if 'test_ai' in sys.argv:
         bot_team = 'O'
         winner, game = play_ai_against_random(board, bot_team, 'O')
-        print game.show(False)
+
 
     if len(sys.argv) < 1:
         bot_team, ppl_team = choose_side()

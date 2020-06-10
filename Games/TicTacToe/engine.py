@@ -178,6 +178,24 @@ class TicTacToe:
             return np.unique(diag2)[0]
         return 0
 
+    def get_game_state_serialized(self):
+        result = ''
+        for loc in self.tiles.keys():
+            [x, y] = self.tiles[loc]
+            result += str(self.board[x, y]) + ' '
+        return result
+
+    def serialized_to_board(self, serial_state):
+        state = np.zeros((3, 3))
+        index = 1
+        for element in serial_state.split(' '):
+            [x,y] = self.tiles[index]
+            state[x,y] = int(float(element))
+            if index == 9:
+                break
+            index += 1
+        return state
+
 
 if __name__ == '__main__':
     if len(sys.argv)<1 or 'test' in sys.argv:

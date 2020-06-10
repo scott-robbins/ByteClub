@@ -11,6 +11,7 @@ class MCTicTacToe:
 
     N_Training_Rounds = 15750
     verbose = False
+    tree = {}
 
     def __init__(self, verbosity):
         # Populate a game tree for deriving the probability of every possible branch?
@@ -98,8 +99,13 @@ class MCTicTacToe:
         Training from Bot A perspective
         '''
         history = []
+
         while board.running:
-            board.find_random_move()
+            moved, tile_moved = board.find_random_move()
+            if move_ct_a == 0:
+                root = board.get_game_state_serialized()
+                self.tree[root] = []
+            self.tree[root].append([board.get_game_state_serialized()])
             move_ct_a += 1
             history.append(np.array(board.board))
             if board.choices[int(board.check_for_winner())] == botA:
@@ -125,9 +131,6 @@ class MCTicTacToe:
                 if show:
                     print '[*] Bot B Wins\n!'
                     print board.show(True)
-
-        # print 'FINISHED'
-        # gameplay = board.game
 
         return winner, history, (move_ct_a+move_ct_b)/2
 
@@ -216,7 +219,6 @@ class MCTicTacToe:
         print self.weights_move_6
         print self.weights_move_7
         print self.weights_move_8
-
 
 
 if __name__ == '__main__':

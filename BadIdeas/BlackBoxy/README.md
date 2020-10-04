@@ -1,6 +1,6 @@
 Can I provide code that generates more code, and does something opaque to user?
 
-# Experiment - Yes, I know this is a bad idea
+# Yes, I know these are bad ideas
 
 This is a silly idea, and no *good* software should do this. But this is for 
 fun, and this is *not good software*. Have fun with it if you want.
@@ -15,7 +15,7 @@ to try something that sounds like a weird challenge.
 
 # Give it a Try! (It's just silly not malicious)
 ```
-git clone https://github.com/0ptik41/Experiment
-cd Experiment/BlackBoxy
+git clone https://github.com/scott-robbins/ByteClub
+cd ByteClub/BadIdeas/BlackBoxy
 python main.py -run
 ```

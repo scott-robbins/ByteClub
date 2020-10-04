@@ -56,7 +56,7 @@ def serve():
 
 def cleanup():
 	# cleanup 
-	cleanup = ['module.py', 'utils.py', 'utils.pyc', 'module.pyc','module.b64.gz']
+	cleanup = ['module.py', 'utils.py', 'utils.pyc', 'module.pyc','module.b64','module.b64.gz']
 	for fobj in cleanup:
 		try:
 			os.remove(fobj)

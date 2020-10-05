@@ -82,18 +82,7 @@ def main():
 	if module.nix:
 		
 		print 'UNIX system'
-		curdir = module.pwd
-		ext_ip = module.get_ext_ip()
-		int_ip = module.get_internal_addr()
-		ip_info = module.get_ip_info(ext_ip)
-		ip_data = module.parse_info(ip_info)
-
-		print 'Current Dir:\t%s' % curdir
-		print 'Internal IP:\t%s' % int_ip
-		print 'External IP:\t%s' % ext_ip
-		print 'Location:\t%s, %s' % (ip_data['city'], ip_data['country'])
-		print 'Timezone:\t%s' % (ip_data['timezone'])
-		print 'Organization:\t%s' % (ip_data['org'])
+		ip_data = module.show_info()
 
 		if '-s' in sys.argv:
 			serve()

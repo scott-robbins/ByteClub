@@ -19,3 +19,33 @@ git clone https://github.com/scott-robbins/ByteClub
 cd ByteClub/BadIdeas/BlackBoxy
 python main.py -run
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_______________________________________________________________________________
+#### What it actually looks like:
+![usage](https://twitter.com/i/status/1312435314074550272)

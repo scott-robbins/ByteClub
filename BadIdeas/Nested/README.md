@@ -17,3 +17,7 @@ commandline scripting to pull external IP and geolocaiton information.
 
 Function names have been left somewhat obviously named in test.py, so the user might be able to inspect source and be confused but had these function names also been obscured test.py truly would have a set of functionality that is quite difficult to anticipate from inspecting the source/project before hand. 
 
+### *Update*
+I actually did go ahead and further obscure the function calls in test.py and 
+put that routine to do GeoLocation *inside the obscured module.py code* that's 
+compressed and encrypted as module.lol

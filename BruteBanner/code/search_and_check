@@ -1,0 +1,9 @@
+#!/bin/bash
+python brutebanner.py -search $1 | cut -d ' ' -f 2 | while read n;
+do
+	echo $n" Has Exposed "$1" and is Located:"
+	curl -s ipinfo.io/$n;
+	echo '====================================================================='
+done
+
+#EOF

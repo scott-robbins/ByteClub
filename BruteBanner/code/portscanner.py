@@ -94,6 +94,7 @@ def main():
 	test = PortScanner(target, [], verb)
 
 	time.sleep(3)
+	test.summary()
 
 if __name__ == '__main__':
 	main()

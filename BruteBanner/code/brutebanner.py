@@ -77,6 +77,72 @@ def run_scanner(targ):
 		pass
 	print '[%ss elapsed]' % str(time.time() - start)
 
+def count_scans(display):
+	ssh = 0;  	vnc = 0;  	rdp = 0
+	ftp = 0;  	irc = 0;	svn = 0  	
+	proxy = 0;	unkn = 0; 	upnp = 0;	
+	https = 0;	http = 0;	pop3 = 0;
+	sproxy = 0; telnet = 0; domain = 0
+	database = {}; 
+	for a in os.listdir(os.getcwd()+'/ScanData/'): database[a] = {}
+	for f in os.listdir(os.getcwd()+'/ScanData/'):
+		data = parse_scan(os.getcwd()+'/ScanData/'+f)
+		database[f]['open'] = []
+		for sock in data['open']:
+			port = sock[0]
+			protocol = sock[1]
+			if protocol == 'ssh':
+				ssh += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'ftp':
+				ftp += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'irc':
+				irc += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'vnc':
+				vnc += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'rdp':
+				rdp += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'upnp':
+				upnp += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'svn' or protocol == 'svn?':
+				svn += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
+				telnet += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'pop3':
+				pop3 += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'http' or protocol == 'http?':
+				http += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'http-proxy':
+				proxy += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'https' or protocol == 'https?':
+				sproxy += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'domain':
+				domain += 1
+				database[f]['open'].append(protocol)
+			elif protocol == 'unknown':
+				unkn += 1
+				database[f]['open'].append(protocol)
+	counts = {'irc': irc, 'ftp': ftp, 'ssh': ssh, 'svn':svn, 'vnc': vnc, 'rdp':rdp,
+			   'pop3':pop3,'http': http, 'https': sproxy, 'domain': domain,
+			   'upnp':upnp, 'proxy':proxy, 'uknown':unkn, 'telnet': telnet,
+			   }
+	database['counts'] = counts
+	if display:
+		for key in counts.keys():
+			print('[*] %s Ports Open: \t%d' % (key.upper(), counts[key]))
+	return database
+
 def main():
 	targets = 'unique.txt'
 	
@@ -87,56 +153,19 @@ def main():
 		run_scanner(targets)
 
 	if '-parse' in sys.argv:
-		ssh = 0;  	vnc = 0;  	rdp = 0
-		ftp = 0;  	irc = 0;	svn = 0  	
-		proxy = 0;	unkn = 0; 	upnp = 0;	
-		https = 0;	http = 0;	pop3 = 0;
-		sproxy = 0; telnet = 0; domain = 0
-		database = {}
-		for f in os.listdir(os.getcwd()+'/ScanData/'):
-			data = parse_scan(os.getcwd()+'/ScanData/'+f)
-			for sock in data['open']:
-				port = sock[0]
-				protocol = sock[1]
-				if protocol == 'ssh':
-					ssh += 1
-				elif protocol == 'ftp':
-					ftp += 1
-				elif protocol == 'irc':
-					irc += 1
-				elif protocol == 'vnc':
-					vnc += 1
-				elif protocol == 'rdp':
-					rdp += 1
-				elif protocol == 'upnp':
-					upnp += 1
-				elif protocol == 'svn' or protocol == 'svn?':
-					svn += 1
-				elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
-					telnet += 1
-				elif protocol == 'pop3':
-					pop3 += 1
-				elif protocol == 'http' or protocol == 'http?':
-					http += 1
-				elif protocol == 'http-proxy':
-					proxy += 1
-				elif protocol == 'https' or protocol == 'https?':
-					sproxy += 1
-				elif protocol == 'domain':
-					domain += 1
-				elif protocol == 'unknown':
-					unkn += 1
-				# else:
-				# 	print protocol
-		counts = {'irc': irc, 'ftp': ftp, 'ssh': ssh, 'svn':svn, 'vnc': vnc, 'rdp':rdp,
-				   'pop3':pop3,'http': http, 'https': sproxy, 'domain': domain,
-				   'upnp':upnp, 'proxy':proxy, 'uknown':unkn, 'telnet': telnet,
-				   }
-		database['counts'] = counts
-		for key in counts.keys():
-			print('[*] %s Ports Open: \t%d' % (key.upper(), counts[key]))
+		data = count_scans(True)
 
-
-
+	if '-search' in sys.argv and len(sys.argv)  > 2:
+		search_term = sys.argv[2]
+		
+		database = count_scans(False)
+		if search_term in database['counts'].keys():
+			print 'Showing Machines with Open %s' % search_term
+		for machine in database.keys():
+			if 'open' in database[machine].keys():
+				# print database[machine]['open']
+				if search_term in database[machine]['open']:
+					print '[*] %s has %s OPEN' % (machine, search_term.upper())
+		
 if __name__ == '__main__':
 	main()

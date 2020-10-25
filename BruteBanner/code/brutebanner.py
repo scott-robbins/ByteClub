@@ -5,6 +5,10 @@ import time
 import sys
 import os 
 
+lookup = {21:'ftp',22:'ssh',23:'telnet',25:'smtp',110:'pop3',
+		  139:'', 443:'https-proxy', 445:'smb'}
+
+
 def clean_address_list(address_list, verbose):
 	addr = []
 	for line in open(address_list, 'rb').readlines():
@@ -79,7 +83,8 @@ def run_scanner(targ):
 
 def count_scans(display):
 	ssh = 0;  	vnc = 0;  	rdp = 0
-	ftp = 0;  	irc = 0;	svn = 0  	
+	ftp = 0;  	irc = 0;	svn = 0 
+	smb = 0; 	
 	proxy = 0;	unkn = 0; 	upnp = 0;	
 	https = 0;	http = 0;	pop3 = 0;
 	sproxy = 0; telnet = 0; domain = 0
@@ -161,11 +166,26 @@ def main():
 		database = count_scans(False)
 		if search_term in database['counts'].keys():
 			print 'Showing Machines with Open %s' % search_term
-		for machine in database.keys():
-			if 'open' in database[machine].keys():
-				# print database[machine]['open']
-				if search_term in database[machine]['open']:
-					print '[*] %s has %s OPEN' % (machine, search_term.upper())
-		
+			for machine in database.keys():
+				if 'open' in database[machine].keys():
+					# print database[machine]['open']
+					if search_term in database[machine]['open']:
+						print '[*] %s has %s OPEN' % (machine, search_term.upper())
+		else:
+			is_port = False
+			try:
+				port = int(search_term)
+				is_port = True
+			except:
+				pass
+			if is_port:
+				search_term = lookup[port]
+				print 'Showing Machines with Open %s' % search_term
+				for machine in database.keys():
+					if 'open' in database[machine].keys():
+						# print database[machine]['open']
+						if search_term in database[machine]['open']:
+							print '[*] %s has %s OPEN' % (machine, search_term.upper())
+
 if __name__ == '__main__':
 	main()

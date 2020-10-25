@@ -165,7 +165,13 @@ def display_host_result(data, addr):
 			version = port[2]
 		print '%d\t%s\t%s' % (ports_n, service.encode('utf-8'), version.encode('utf-8'))
 
-
+def query_term(search_term, data):
+	print 'Showing Machines with Open %s' % search_term
+	for machine in data.keys():
+		if 'open' in data[machine].keys():
+			for spot in data[machine]['open']:
+				if spot[1] == search_term:
+					print '[*] %s has %s OPEN' % (machine, search_term.upper())
 
 def main():
 	targets = 'unique.txt'
@@ -180,38 +186,28 @@ def main():
 		data = count_scans(True)
 
 	if '-search' in sys.argv and len(sys.argv)  > 2:
-		search_term = sys.argv[2]
+		search = sys.argv[2]
 		
 		database = count_scans(False)
-		if search_term in database['counts'].keys():
-			print 'Showing Machines with Open %s' % search_term
-			for machine in database.keys():
-				if 'open' in database[machine].keys():
-					for spot in database[machine]['open']:
-							if spot[1] == search_term:
-								print '[*] %s has %s OPEN' % (machine, search_term.upper())
-					
-		else:
+		if search in database['counts'].keys():
+			query_term(search, database)
+			
+		else: # check if they provided a port number
 			is_port = False
 			try:
-				port = int(search_term)
+				port = int(search)
 				is_port = True
 			except:
 				pass
 			if is_port:
-				search_term = lookup[port]
-				print 'Showing Machines with Open %s' % search_term
-				for machine in database.keys():
-					if 'open' in database[machine].keys():
-						for spot in database[machine]['open']:
-							if spot[1] == search_term:
-								print '[*] %s has %s OPEN' % (machine, search_term.upper())
-			else:
-				# check if they provided an ip
-				if len(search_term.split('.'))>=4:
-					if search_term in database.keys():
-						print '[*] Revtrieving Scan results for %s' % search_term
-						display_host_result(database, search_term)
+				search = lookup[port]
+				query_term(search, database)
+				
+			else: # check if they provided an ip
+				if len(search.split('.'))>=4:
+					if search in database.keys():
+						print '[*] Revtrieving Scan results for %s' % search
+						display_host_result(database, search)
 
 if __name__ == '__main__':
 	main()

@@ -5,8 +5,10 @@ import time
 import sys
 import os 
 
-lookup = {21:'ftp',22:'ssh',23:'telnet',25:'smtp',110:'pop3',
-		  139:'', 443:'https-proxy', 445:'smb'}
+lookup = {21:'ftp',22:'ssh', 23:'telnet', 25:'smtp', 110:'pop3',
+		  113: 'irc', 139:'NetBIOS', 443:'https', 
+		  445:'microsoft-ds', 1723:'pptp',1900:'upnp', 3389:'rdp', 3690: 'svn', 
+		  5900:'vnc', 8080:'http-proxy', 8081:'https-proxy', 8082:'https-proxy?'}
 
 
 def clean_address_list(address_list, verbose):
@@ -84,7 +86,7 @@ def run_scanner(targ):
 def count_scans(display):
 	ssh = 0;  	vnc = 0;  	rdp = 0
 	ftp = 0;  	irc = 0;	svn = 0 
-	smb = 0; 	
+	pptp= 0;
 	proxy = 0;	unkn = 0; 	upnp = 0;	
 	https = 0;	http = 0;	pop3 = 0;
 	sproxy = 0; telnet = 0; domain = 0
@@ -96,57 +98,74 @@ def count_scans(display):
 		for sock in data['open']:
 			port = sock[0]
 			protocol = sock[1]
+			extra = sock[-1]
 			if protocol == 'ssh':
 				ssh += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'ftp':
 				ftp += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'irc':
 				irc += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'vnc':
 				vnc += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'rdp':
 				rdp += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'upnp':
 				upnp += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'svn' or protocol == 'svn?':
 				svn += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
+			elif protocol == 'pptp':
+				pptp += 1
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
 				telnet += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'pop3':
 				pop3 += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'http' or protocol == 'http?':
 				http += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'http-proxy':
 				proxy += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'https' or protocol == 'https?':
 				sproxy += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'domain':
 				domain += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'unknown':
 				unkn += 1
-				database[f]['open'].append(protocol)
+				database[f]['open'].append([port, protocol, extra])
 	counts = {'irc': irc, 'ftp': ftp, 'ssh': ssh, 'svn':svn, 'vnc': vnc, 'rdp':rdp,
-			   'pop3':pop3,'http': http, 'https': sproxy, 'domain': domain,
-			   'upnp':upnp, 'proxy':proxy, 'uknown':unkn, 'telnet': telnet,
-			   }
+			  'pop3':pop3,'http': http,'pptp':pptp,'upnp': upnp, 
+			  'proxy': proxy, 'uknown': unkn, 'telnet': telnet,
+			   'https': sproxy, 'domain': domain,}
 	database['counts'] = counts
 	if display:
 		for key in counts.keys():
 			print('[*] %s Ports Open: \t%d' % (key.upper(), counts[key]))
 	return database
+
+def display_host_result(data, addr):
+	print '[*] %s has the following ports OPEN:' % addr
+	print 'PORT\tSERVICE\tVERSION'
+	for port in data[addr]['open']:
+		ports_n = port[0]
+		service = port[1]
+		version = ''
+		if port[2] != port[1] and port[2] !='':
+			version = port[2]
+		print '%d\t%s\t%s' % (ports_n, service.encode('utf-8'), version.encode('utf-8'))
+
+
 
 def main():
 	targets = 'unique.txt'
@@ -168,9 +187,10 @@ def main():
 			print 'Showing Machines with Open %s' % search_term
 			for machine in database.keys():
 				if 'open' in database[machine].keys():
-					# print database[machine]['open']
-					if search_term in database[machine]['open']:
-						print '[*] %s has %s OPEN' % (machine, search_term.upper())
+					for spot in database[machine]['open']:
+							if spot[1] == search_term:
+								print '[*] %s has %s OPEN' % (machine, search_term.upper())
+					
 		else:
 			is_port = False
 			try:
@@ -183,9 +203,15 @@ def main():
 				print 'Showing Machines with Open %s' % search_term
 				for machine in database.keys():
 					if 'open' in database[machine].keys():
-						# print database[machine]['open']
-						if search_term in database[machine]['open']:
-							print '[*] %s has %s OPEN' % (machine, search_term.upper())
+						for spot in database[machine]['open']:
+							if spot[1] == search_term:
+								print '[*] %s has %s OPEN' % (machine, search_term.upper())
+			else:
+				# check if they provided an ip
+				if len(search_term.split('.'))>=4:
+					if search_term in database.keys():
+						print '[*] Revtrieving Scan results for %s' % search_term
+						display_host_result(database, search_term)
 
 if __name__ == '__main__':
 	main()

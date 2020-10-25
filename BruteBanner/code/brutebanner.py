@@ -6,8 +6,8 @@ import sys
 import os 
 
 lookup = {21:'ftp',22:'ssh', 23:'telnet', 25:'smtp', 110:'pop3',
-		  113: 'irc', 139:'NetBIOS', 443:'https', 
-		  445:'microsoft-ds', 1723:'pptp',1900:'upnp', 3389:'rdp', 3690: 'svn', 
+		  113: 'irc', 139:'NetBIOS', 443:'https', 445:'microsoft-ds', 
+		  587: 'smtp',1723:'pptp',1900:'upnp', 3309:'msql', 3389:'rdp', 3690: 'svn', 
 		  5900:'vnc', 8080:'http-proxy', 8081:'https-proxy', 8082:'https-proxy?'}
 
 
@@ -31,10 +31,11 @@ def setup_folders():
 		os.mkdir(os.getcwd()+'/ScanData')
 
 def parse_scan(scan_file):
-	results = {'open':[],'closed':[]}
+	results = {'open':[],'filtered':[]}
 	for line in open(scan_file,'rb').readlines():
 		ln = line.replace('\n', '')
 		o = ln.split(' open ')
+		f = ln.split(' filtered ')
 		if len(o) == 2:
 			try:
 				port = int(o[0].split('/')[0])	
@@ -51,7 +52,22 @@ def parse_scan(scan_file):
 				results['open'].append([port, prot, version])
 			except:
 				pass
-			
+		# now check for filtered 
+		elif len(f)==2:
+		
+			try:
+				port = int(f[0].split('/')[0].replace(' ',''))	
+				prot = f[1].split(' ')[0].replace(' ','')
+				
+				if len(f[1].split(' '))>5:
+					n = len(f[1].split(' '))
+					version = ''.join(f[1].split(' ')[5:n])
+				else:
+					version = ''
+				results['filtered'].append([port, prot, version])
+			except:
+				pass
+
 	return results
 
 def run_scan(address):
@@ -86,7 +102,7 @@ def run_scanner(targ):
 def count_scans(display):
 	ssh = 0;  	vnc = 0;  	rdp = 0
 	ftp = 0;  	irc = 0;	svn = 0 
-	pptp= 0;
+	pptp= 0;	smtp = 0;	msql = 0
 	proxy = 0;	unkn = 0; 	upnp = 0;	
 	https = 0;	http = 0;	pop3 = 0;
 	sproxy = 0; telnet = 0; domain = 0
@@ -95,6 +111,7 @@ def count_scans(display):
 	for f in os.listdir(os.getcwd()+'/ScanData/'):
 		data = parse_scan(os.getcwd()+'/ScanData/'+f)
 		database[f]['open'] = []
+		database[f]['filtered'] = []
 		for sock in data['open']:
 			port = sock[0]
 			protocol = sock[1]
@@ -111,7 +128,7 @@ def count_scans(display):
 			elif protocol == 'vnc':
 				vnc += 1
 				database[f]['open'].append([port, protocol, extra])
-			elif protocol == 'rdp':
+			elif protocol == 'microsoft-ds':
 				rdp += 1
 				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'upnp':
@@ -122,6 +139,9 @@ def count_scans(display):
 				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'pptp':
 				pptp += 1
+				database[f]['open'].append([port, protocol, extra])
+			elif protocol == 'smtp':
+				smtp += 1
 				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
 				telnet += 1
@@ -141,17 +161,75 @@ def count_scans(display):
 			elif protocol == 'domain':
 				domain += 1
 				database[f]['open'].append([port, protocol, extra])
+			elif protocol == 'mysql':
+				msql += 1
+				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'unknown':
 				unkn += 1
 				database[f]['open'].append([port, protocol, extra])
+		for sock in data['filtered']:
+			port = sock[0]
+			protocol = sock[1]
+			extra = sock[-1]
+			if protocol == 'ssh':
+				ssh += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'ftp':
+				ftp += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'irc':
+				irc += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'vnc':
+				vnc += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'microsoft-ds':
+				rdp += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'upnp':
+				upnp += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'svn' or protocol == 'svn?':
+				svn += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'pptp':
+				pptp += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'smtp':
+				smtp += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
+				telnet += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'pop3':
+				pop3 += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'http' or protocol == 'http?':
+				http += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'http-proxy':
+				proxy += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'https' or protocol == 'https?':
+				sproxy += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'domain':
+				domain += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'mysql':
+				msql += 1
+				database[f]['filtered'].append([port, protocol, extra])
+			elif protocol == 'unknown':
+				unkn += 1
+				database[f]['filtered'].append([port, protocol, extra])
 	counts = {'irc': irc, 'ftp': ftp, 'ssh': ssh, 'svn':svn, 'vnc': vnc, 'rdp':rdp,
-			  'pop3':pop3,'http': http,'pptp':pptp,'upnp': upnp, 
-			  'proxy': proxy, 'uknown': unkn, 'telnet': telnet,
+			  'pop3':pop3,'http': http,'pptp':pptp,'upnp': upnp, 'smtp':smtp,
+			  'proxy': proxy, 'uknown': unkn, 'telnet': telnet, 'mysql':msql,
 			   'https': sproxy, 'domain': domain,}
 	database['counts'] = counts
 	if display:
 		for key in counts.keys():
-			print('[*] %s Ports Open: \t%d' % (key.upper(), counts[key]))
+			print('[*] %s Ports Open/Filtered:\t%d' % (key.upper(), counts[key]))
 	return database
 
 def display_host_result(data, addr):
@@ -172,6 +250,10 @@ def query_term(search_term, data):
 			for spot in data[machine]['open']:
 				if spot[1] == search_term:
 					print '[*] %s has %s OPEN' % (machine, search_term.upper())
+		if 'filtered' in data[machine].keys():
+			for spot in data[machine]['filtered']:
+				if spot[1] == search_term:
+					print '[*] %s has %s FILTERED' % (machine, search_term.upper())
 
 def main():
 	targets = 'unique.txt'

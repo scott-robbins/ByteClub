@@ -25,7 +25,7 @@ class PortScanner():
 				self.ports.append(port)
 		else:
 			# Default port space
-			self.ports = [21,22,23,25,53,80,443,5900,8080]
+			self.ports = [21,22,23,25,80,110,139,443,445,1433,1729,3389,5900,8080]
 		for point in self.ports:
 			self.results[point] = {'state':False,'banner':''}
 
@@ -38,7 +38,10 @@ class PortScanner():
 		try:
 			s.connect((self.target, sock_num))
 			state = True
-			banner = s.recv(2048)
+			blocked = True; t0 = time.time()
+			while blocked and (time.time()-t0<1.5):
+				banner = s.recv(1028)
+				recv = False
 		except socket.error:
 			pass
 		s.close()
@@ -93,8 +96,9 @@ def main():
 	# Run It
 	test = PortScanner(target, [], verb)
 
-	time.sleep(3)
-	test.summary()
+	if not verb:
+		time.sleep(3)
+		test.summary()
 
 if __name__ == '__main__':
 	main()

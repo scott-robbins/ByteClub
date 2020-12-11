@@ -107,6 +107,9 @@ def count_scans(display):
 	https = 0;	http = 0;	pop3 = 0;
 	sproxy = 0; telnet = 0; domain = 0
 	database = {}; 
+	ssh_versions = {};	smtp_versions = {}
+	ftp_versions = {};	http_versions = {}
+	rdp_versions = {};	msql_versions = {}
 	for a in os.listdir(os.getcwd()+'/ScanData/'): database[a] = {}
 	for f in os.listdir(os.getcwd()+'/ScanData/'):
 		data = parse_scan(os.getcwd()+'/ScanData/'+f)
@@ -119,9 +122,17 @@ def count_scans(display):
 			if protocol == 'ssh':
 				ssh += 1
 				database[f]['open'].append([port, protocol, extra])
+				if extra not in ssh_versions.keys():
+					ssh_versions[extra] = [f]
+				else:
+					ssh_versions[extra].append(f)
 			elif protocol == 'ftp':
 				ftp += 1
 				database[f]['open'].append([port, protocol, extra])
+				if extra not in ftp_versions.keys():
+					ftp_versions[extra] = [f]
+				else:
+					ftp_versions[extra].append(f)
 			elif protocol == 'irc':
 				irc += 1
 				database[f]['open'].append([port, protocol, extra])
@@ -131,6 +142,10 @@ def count_scans(display):
 			elif protocol == 'microsoft-ds':
 				rdp += 1
 				database[f]['open'].append([port, protocol, extra])
+				if extra not in rdp_versions.keys():
+					rdp_versions[extra] = [f]
+				else:
+					rdp_versions[extra].append(f)
 			elif protocol == 'upnp':
 				upnp += 1
 				database[f]['open'].append([port, protocol, extra])
@@ -143,6 +158,10 @@ def count_scans(display):
 			elif protocol == 'smtp':
 				smtp += 1
 				database[f]['open'].append([port, protocol, extra])
+				if extra not in smtp_versions.keys():
+					smtp_versions[extra] = [f]
+				else:
+					smtp_versions[extra].append(f)
 			elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
 				telnet += 1
 				database[f]['open'].append([port, protocol, extra])
@@ -151,7 +170,11 @@ def count_scans(display):
 				database[f]['open'].append([port, protocol, extra])
 			elif protocol == 'http' or protocol == 'http?':
 				http += 1
-				database[f]['open'].append([port, protocol, extra])
+				database[f]['open'].append([port, 'http', extra])
+				if extra not in http_versions.keys():
+					http_versions[extra] = [f]
+				else:
+					http_versions[extra].append(f)
 			elif protocol == 'http-proxy':
 				proxy += 1
 				database[f]['open'].append([port, protocol, extra])
@@ -174,9 +197,17 @@ def count_scans(display):
 			if protocol == 'ssh':
 				ssh += 1
 				database[f]['filtered'].append([port, protocol, extra])
+				if extra not in ssh_versions.keys():
+					ssh_versions[extra] = [f]
+				else:
+					ssh_versions[extra].append(f)
 			elif protocol == 'ftp':
 				ftp += 1
 				database[f]['filtered'].append([port, protocol, extra])
+				if extra not in ftp_versions.keys():
+					ftp_versions[extra] = [f]
+				else:
+					ftp_versions[extra].append(f)
 			elif protocol == 'irc':
 				irc += 1
 				database[f]['filtered'].append([port, protocol, extra])
@@ -186,6 +217,10 @@ def count_scans(display):
 			elif protocol == 'microsoft-ds':
 				rdp += 1
 				database[f]['filtered'].append([port, protocol, extra])
+				if extra not in rdp_versions.keys():
+					rdp_versions[extra] = [f]
+				else:
+					rdp_versions[extra].append(f)
 			elif protocol == 'upnp':
 				upnp += 1
 				database[f]['filtered'].append([port, protocol, extra])
@@ -198,6 +233,10 @@ def count_scans(display):
 			elif protocol == 'smtp':
 				smtp += 1
 				database[f]['filtered'].append([port, protocol, extra])
+				if extra not in smtp_versions.keys():
+					smtp_versions[extra] = [f]
+				else:
+					smtp_versions[extra].append(f)
 			elif protocol == 'telnet' or protocol == 'telnetd' or protocol == 'telnet?':
 				telnet += 1
 				database[f]['filtered'].append([port, protocol, extra])
@@ -206,7 +245,11 @@ def count_scans(display):
 				database[f]['filtered'].append([port, protocol, extra])
 			elif protocol == 'http' or protocol == 'http?':
 				http += 1
-				database[f]['filtered'].append([port, protocol, extra])
+				database[f]['filtered'].append([port, 'http', extra])
+				if extra not in http_versions.keys():
+					http_versions[extra] = [f]
+				else:
+					http_versions[extra].append(f)
 			elif protocol == 'http-proxy':
 				proxy += 1
 				database[f]['filtered'].append([port, protocol, extra])
@@ -230,7 +273,17 @@ def count_scans(display):
 	if display:
 		for key in counts.keys():
 			print('[*] %s Ports Open/Filtered:\t%d' % (key.upper(), counts[key]))
-	return database
+	
+	print '- %d versions of FTP found' % len(ftp_versions.keys())
+	print '- %d versions of RDP found' % len(rdp_versions.keys())
+	print '- %d versions of SSH found' % len(ssh_versions.keys())
+	print '- %d versions of SMTP found' % len(smtp_versions.keys())
+	print '- %d versions of HTTP found' % len(http_versions.keys())	
+
+	versions = {'ssh': ssh_versions,
+				'ftp': ftp_versions,
+				'smtp': smtp_versions}
+	return database, versions
 
 def display_host_result(data, addr):
 	print '[*] %s has the following ports OPEN:' % addr
@@ -250,12 +303,14 @@ def query_term(search_term, data):
 			for spot in data[machine]['open']:
 				if spot[1] == search_term:
 					print '[*] %s has %s OPEN' % (machine, search_term.upper())
+
 		if 'filtered' in data[machine].keys():
 			for spot in data[machine]['filtered']:
 				if spot[1] == search_term:
 					print '[*] %s has %s FILTERED' % (machine, search_term.upper())
 
 def main():
+	verbosity = False
 	targets = 'unique.txt'
 	
 	if '-t' in sys.argv and len(sys.argv) > 2:
@@ -270,8 +325,37 @@ def main():
 	if '-search' in sys.argv and len(sys.argv)  > 2:
 		search = sys.argv[2]
 		
-		database = count_scans(False)
-		if search in database['counts'].keys():
+		database, types = count_scans(verbosity)
+		if 'version' in sys.argv:
+			opts = {}; i = 0
+			if search in types.keys():
+				for ver in types.keys():
+					
+					if ver == search:
+						for k in types[ver].keys():
+							i += 1
+							print '[%d] %s' % (i,k)
+							opts[i] = k
+						opt = int(input('Enter # to view one of these: '))
+						if opt not in opts.keys():
+							print '!! Illegal Selection'
+						else:
+							for addr in types[ver][opts[opt]]:
+								print addr
+					elif search == 'rdp':
+						for k in types['microsoft-ds'].keys():
+							i += 1
+							print '- %s' % k
+							opts[i] = 'microsoft-ds'
+
+						opt = int(input('Enter # to view one of these: '))
+						if opt not in opts.keys():
+							print '!! Illegal Selection'
+						else:
+							for addr in types[ver][opts[opt]]:
+								print addr
+			
+		elif search in database['counts'].keys():
 			query_term(search, database)
 			
 		else: # check if they provided a port number

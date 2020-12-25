@@ -1,0 +1,37 @@
+#!/bin/bash
+PID=$(pidof $1)
+
+
+case $2 in
+	'map')
+		# read proc map
+		cat /proc/$PID/maps	
+		;;
+	'mounts')
+		cat /proc/$PID/mountinfo
+		;;
+	'pagemap')
+		sudo cat /proc/$PID/pagemap | hexdump -C
+		;;
+	'status')
+		cat /proc/$PID/status
+		;;
+	'stack')
+		sudo cat /proc/$PID/stack
+		;;
+	'links')
+		sudo ls /proc/$PID/fd | while read n; do
+			ls -alh /proc/$PID/fd/$n;
+		done
+		;;
+	'intrude')
+		sudo python mem.py $PID >> dumpdata
+		strings dumpdata
+		rm dumpdata
+		;;
+	*)
+		ls /proc/$PID 
+		;;
+esac
+
+#EOF
